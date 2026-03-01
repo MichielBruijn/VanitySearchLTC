@@ -241,13 +241,23 @@ VanitySearch::VanitySearch(Secp256K1 *secp, vector<std::string> &inputPrefixes,s
     case '3':
       searchType = P2SH;
       break;
-    case 'l':
     case 'L':
-      searchType = BECH32;
+    case 'l':
+    {
+      std::string lp = inputPrefixes[0];
+      std::transform(lp.begin(), lp.end(), lp.begin(), ::tolower);
+      if(lp.length() >= 5 && strncmp(lp.c_str(), "ltc1q", 5) == 0)
+        searchType = BECH32;
+      else
+        searchType = P2PKH;
+    }
+    break;
+    case 'M':
+      searchType = P2SH;
       break;
 
     default:
-      printf("Invalid start character 1,3 or l, expected");
+      printf("Invalid start character L, M or ltc1q, expected");
       exit(1);
 
     }
@@ -357,16 +367,26 @@ bool VanitySearch::initPrefix(std::string &prefix,PREFIX_ITEM *it) {
   case '3':
     aType = P2SH;
     break;
-  case 'l':
   case 'L':
-    std::transform(prefix.begin(), prefix.end(), prefix.begin(), ::tolower);
-    if(strncmp(prefix.c_str(), "ltc1q", 5) == 0)
+  case 'l':
+  {
+    std::string lp = prefix;
+    std::transform(lp.begin(), lp.end(), lp.begin(), ::tolower);
+    if(lp.length() >= 5 && strncmp(lp.c_str(), "ltc1q", 5) == 0) {
+      std::transform(prefix.begin(), prefix.end(), prefix.begin(), ::tolower);
       aType = BECH32;
+    } else {
+      aType = P2PKH;
+    }
+  }
+  break;
+  case 'M':
+    aType = P2SH;
     break;
   }
 
   if (aType==-1) {
-    printf("Ignoring prefix \"%s\" (must start with 1 or 3 or ltc1q)\n", prefix.c_str());
+    printf("Ignoring prefix \"%s\" (must start with L, M or ltc1q)\n", prefix.c_str());
     return false;
   }
 
@@ -488,12 +508,10 @@ bool VanitySearch::initPrefix(std::string &prefix,PREFIX_ITEM *it) {
       }
     }
 
-    if (searchType == P2SH) {
-      if (result.data()[0] != 5) {
-        if(caseSensitive)
-          printf("Ignoring prefix \"%s\" (Unreachable, 31h1 to 3R2c only)\n", prefix.c_str());
-        return false;
-      }
+    if (searchType == P2SH && prefix.data()[0] != 'M') {
+      if(caseSensitive)
+        printf("Ignoring prefix \"%s\" (Litecoin P2SH addresses start with M)\n", prefix.c_str());
+      return false;
     }
 
     if (result.size() != 25) {

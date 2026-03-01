@@ -77,13 +77,15 @@ void CheckAddress(Secp256K1 *T,std::string address,std::string privKeyStr) {
   Point pub = T->ComputePublicKey(&privKey);
 
   switch (address.data()[0]) {
-  case '1':
-    type = P2PKH; break;
-  case '3':
-    type = P2SH; break;
-  case 'l':
   case 'L':
-    type = BECH32; break;
+  case 'l':
+    if(address.length() >= 5 && address.substr(0,5) == "ltc1q")
+      type = BECH32;
+    else
+      type = P2PKH;
+    break;
+  case 'M':
+    type = P2SH; break;
   default:
     printf("Failed ! \n%s Address format not supported\n", address.c_str());
     return;
@@ -139,13 +141,8 @@ void Secp256K1::Check() {
 
   PrintResult(pub.equals(expectedPubKey));
 
-  CheckAddress(this,"15t3Nt1zyMETkHbjJTTshxLnqPzQvAtdCe","5HqoeNmaz17FwZRqn7kCBP1FyJKSe4tt42XZB7426EJ2MVWDeqk");
-  CheckAddress(this,"1BoatSLRHtKNngkdXEeobR76b53LETtpyT","5J4XJRyLVgzbXEgh8VNi4qovLzxRftzMd8a18KkdXv4EqAwX3tS");
-  CheckAddress(this,"1Test6BNjSJC5qwYXsjwKVLvz7DpfLehy","5HytzR8p5hp8Cfd8jsVFnwMNXMsEW1sssFxMQYqEUjGZN72iLJ2");
-  CheckAddress(this,"16S5PAsGZ8VFM1CRGGLqm37XHrp46f6CTn","KxMUSkFhEzt2eJHscv2vNSTnnV2cgAXgL4WDQBTx7Ubd9TZmACAz");
-  CheckAddress(this,"1Tst2RwMxZn9cYY5mQhCdJic3JJrK7Fq7","L1vamTpSeK9CgynRpSJZeqvUXf6dJa25sfjb2uvtnhj65R5TymgF");
-  CheckAddress(this,"3CyQYcByvcWK8BkYJabBS82yDLNWt6rWSx","KxMUSkFhEzt2eJHscv2vNSTnnV2cgAXgL4WDQBTx7Ubd9TZmACAz");
-  CheckAddress(this,"31to1KQe67YjoDfYnwFJThsGeQcFhVDM5Q","KxV2Tx5jeeqLHZ1V9ufNv1doTZBZuAc5eY24e6b27GTkDhYwVad7");
+  // TODO: add Litecoin test vectors (L.../M.../ltc1q...)
+  // Bitcoin test vectors removed (different version bytes)
   // TODO: update with a valid Litecoin bech32 (ltc1q) test vector
   //CheckAddress(this,"ltc1q...","T...");
 
@@ -659,17 +656,17 @@ std::vector<std::string> Secp256K1::GetAddress(int type, bool compressed, unsign
   switch (type) {
 
   case P2PKH:
-    add1[0] = 0x00;
-    add2[0] = 0x00;
-    add3[0] = 0x00;
-    add4[0] = 0x00;
+    add1[0] = 0x30;
+    add2[0] = 0x30;
+    add3[0] = 0x30;
+    add4[0] = 0x30;
     break;
 
   case P2SH:
-    add1[0] = 0x05;
-    add2[0] = 0x05;
-    add3[0] = 0x05;
-    add4[0] = 0x05;
+    add1[0] = 0x32;
+    add2[0] = 0x32;
+    add3[0] = 0x32;
+    add4[0] = 0x32;
     break;
 
   case BECH32:
@@ -714,11 +711,11 @@ std::string Secp256K1::GetAddress(int type, bool compressed,unsigned char *hash1
   switch(type) {
 
     case P2PKH:
-      address[0] = 0x00;
+      address[0] = 0x30;
       break;
 
     case P2SH:
-      address[0] = 0x05;
+      address[0] = 0x32;
       break;
 
     case BECH32:
@@ -744,7 +741,7 @@ std::string Secp256K1::GetAddress(int type, bool compressed, Point &pubKey) {
   switch (type) {
 
   case P2PKH:
-    address[0] = 0x00;
+    address[0] = 0x30;
     break;
 
   case BECH32:
@@ -764,7 +761,7 @@ std::string Secp256K1::GetAddress(int type, bool compressed, Point &pubKey) {
     if (!compressed) {
       return " P2SH: Only compressed key ";
     }
-    address[0] = 0x05;
+    address[0] = 0x32;
     break;
   }
 

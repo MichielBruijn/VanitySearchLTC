@@ -44,11 +44,11 @@ __device__ __noinline__ void _GetAddress(int type,uint32_t *hash,char *b58Add) {
   switch (type) {
 
   case P2PKH:
-    A[0] = 0x00;
+    A[0] = 0x30;
     break;
 
   case P2SH:
-    A[0] = 0x05;
+    A[0] = 0x32;
     break;
 
   }
