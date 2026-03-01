@@ -81,8 +81,8 @@ void CheckAddress(Secp256K1 *T,std::string address,std::string privKeyStr) {
     type = P2PKH; break;
   case '3':
     type = P2SH; break;
-  case 'b':
-  case 'B':
+  case 'l':
+  case 'L':
     type = BECH32; break;
   default:
     printf("Failed ! \n%s Address format not supported\n", address.c_str());
@@ -146,7 +146,8 @@ void Secp256K1::Check() {
   CheckAddress(this,"1Tst2RwMxZn9cYY5mQhCdJic3JJrK7Fq7","L1vamTpSeK9CgynRpSJZeqvUXf6dJa25sfjb2uvtnhj65R5TymgF");
   CheckAddress(this,"3CyQYcByvcWK8BkYJabBS82yDLNWt6rWSx","KxMUSkFhEzt2eJHscv2vNSTnnV2cgAXgL4WDQBTx7Ubd9TZmACAz");
   CheckAddress(this,"31to1KQe67YjoDfYnwFJThsGeQcFhVDM5Q","KxV2Tx5jeeqLHZ1V9ufNv1doTZBZuAc5eY24e6b27GTkDhYwVad7");
-  CheckAddress(this,"bc1q6tqytpg06uhmtnhn9s4f35gkt8yya5a24dptmn","L2wAVD273GwAxGuEDHvrCqPfuWg5wWLZWy6H3hjsmhCvNVuCERAQ");
+  // TODO: update with a valid Litecoin bech32 (ltc1q) test vector
+  //CheckAddress(this,"ltc1q...","T...");
 
   // 1ViViGLEawN27xRzGrEhhYPQrZiTKvKLo
   pub.x.SetBase16(/*04*/"75249c39f38baa6bf20ab472191292349426dc3652382cdc45f65695946653dc");
@@ -208,9 +209,9 @@ Int Secp256K1::DecodePrivateKey(char *key,bool *compressed) {
   ret.SetInt32(0);
   std::vector<unsigned char> privKey;
 
-  if(key[0] == '5') {
+  if(key[0] == '6') {
 
-    // Not compressed
+    // Not compressed (Litecoin WIF uncompressed)
     DecodeBase58(key,privKey);
     if(privKey.size() != 37) {
       printf("Invalid private key, size != 37 (size=%d)!\n",(int)privKey.size());
@@ -218,7 +219,7 @@ Int Secp256K1::DecodePrivateKey(char *key,bool *compressed) {
       return ret;
     }
 
-    if(privKey[0] != 0x80) {
+    if(privKey[0] != 0xB0) {
       printf("Invalid private key, wrong prefix !\n");
       return ret;
     }
@@ -239,7 +240,7 @@ Int Secp256K1::DecodePrivateKey(char *key,bool *compressed) {
     *compressed = false;
     return ret;
 
-  } else if(key[0] == 'K' || key[0] == 'L') {
+  } else if(key[0] == 'T') {
 
     // Compressed
     DecodeBase58(key,privKey);
@@ -267,7 +268,7 @@ Int Secp256K1::DecodePrivateKey(char *key,bool *compressed) {
 
   }
 
-  printf("Invalid private key, not starting with 5,K or L !\n");
+  printf("Invalid private key, not starting with 6 or T !\n");
   ret.SetInt32(-1);
   return ret;
 
@@ -604,7 +605,7 @@ std::string Secp256K1::GetPrivAddress(bool compressed,Int &privKey) {
 
   unsigned char address[38];
 
-  address[0] = 0x80; // Mainnet
+  address[0] = 0xB0; // Litecoin Mainnet
   privKey.Get32Bytes(address + 1);
 
   if( compressed ) {
@@ -674,13 +675,13 @@ std::vector<std::string> Secp256K1::GetAddress(int type, bool compressed, unsign
   case BECH32:
   {
     char output[128];
-    segwit_addr_encode(output, "bc", 0, h1, 20);
+    segwit_addr_encode(output, "ltc", 0, h1, 20);
     ret.push_back(std::string(output));
-    segwit_addr_encode(output, "bc", 0, h2, 20);
+    segwit_addr_encode(output, "ltc", 0, h2, 20);
     ret.push_back(std::string(output));
-    segwit_addr_encode(output, "bc", 0, h3, 20);
+    segwit_addr_encode(output, "ltc", 0, h3, 20);
     ret.push_back(std::string(output));
-    segwit_addr_encode(output, "bc", 0, h4, 20);
+    segwit_addr_encode(output, "ltc", 0, h4, 20);
     ret.push_back(std::string(output));
     return ret;
   }
@@ -723,7 +724,7 @@ std::string Secp256K1::GetAddress(int type, bool compressed,unsigned char *hash1
     case BECH32:
     {
       char output[128];
-      segwit_addr_encode(output, "bc", 0, hash160, 20);
+      segwit_addr_encode(output, "ltc", 0, hash160, 20);
       return std::string(output);
     }
     break;
@@ -754,7 +755,7 @@ std::string Secp256K1::GetAddress(int type, bool compressed, Point &pubKey) {
     char output[128];
     uint8_t h160[20];
     GetHash160(type, compressed, pubKey, h160);
-    segwit_addr_encode(output,"bc",0,h160,20);
+    segwit_addr_encode(output,"ltc",0,h160,20);
     return std::string(output);
   }
   break;

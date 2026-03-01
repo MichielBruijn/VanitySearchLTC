@@ -241,13 +241,13 @@ VanitySearch::VanitySearch(Secp256K1 *secp, vector<std::string> &inputPrefixes,s
     case '3':
       searchType = P2SH;
       break;
-    case 'b':
-    case 'B':
+    case 'l':
+    case 'L':
       searchType = BECH32;
       break;
 
     default:
-      printf("Invalid start character 1,3 or b, expected");
+      printf("Invalid start character 1,3 or l, expected");
       exit(1);
 
     }
@@ -357,16 +357,16 @@ bool VanitySearch::initPrefix(std::string &prefix,PREFIX_ITEM *it) {
   case '3':
     aType = P2SH;
     break;
-  case 'b':
-  case 'B':
+  case 'l':
+  case 'L':
     std::transform(prefix.begin(), prefix.end(), prefix.begin(), ::tolower);
-    if(strncmp(prefix.c_str(), "bc1q", 4) == 0)
+    if(strncmp(prefix.c_str(), "ltc1q", 5) == 0)
       aType = BECH32;
     break;
   }
 
   if (aType==-1) {
-    printf("Ignoring prefix \"%s\" (must start with 1 or 3 or bc1q)\n", prefix.c_str());
+    printf("Ignoring prefix \"%s\" (must start with 1 or 3 or ltc1q)\n", prefix.c_str());
     return false;
   }
 
@@ -382,7 +382,7 @@ bool VanitySearch::initPrefix(std::string &prefix,PREFIX_ITEM *it) {
     uint8_t witprog[40];
     size_t witprog_len;
     int witver;
-    const char* hrp = "bc";
+    const char* hrp = "ltc";
 
     int ret = segwit_addr_decode(&witver, witprog, &witprog_len, hrp, prefix.c_str());
 
@@ -401,8 +401,8 @@ bool VanitySearch::initPrefix(std::string &prefix,PREFIX_ITEM *it) {
 
     }
 
-    if (prefix.length() < 5) {
-      printf("Ignoring prefix \"%s\" (too short, length<5 )\n", prefix.c_str());
+    if (prefix.length() < 6) {
+      printf("Ignoring prefix \"%s\" (too short, length<6 )\n", prefix.c_str());
       return false;
     }
 
@@ -414,14 +414,14 @@ bool VanitySearch::initPrefix(std::string &prefix,PREFIX_ITEM *it) {
     uint8_t data[64];
     memset(data,0,64);
     size_t data_length;
-    if(!bech32_decode_nocheck(data,&data_length,prefix.c_str()+4)) {
+    if(!bech32_decode_nocheck(data,&data_length,prefix.c_str()+5)) {
       printf("Ignoring prefix \"%s\" (Only \"023456789acdefghjklmnpqrstuvwxyz\" allowed)\n", prefix.c_str());
       return false;
     }
 
     // Difficulty
     it->sPrefix = *(prefix_t *)data;
-    it->difficulty = pow(2, 5*(prefix.length()-4));
+    it->difficulty = pow(2, 5*(prefix.length()-5));
     it->isFull = false;
     it->lPrefix = 0;
     it->prefix = (char *)prefix.c_str();
