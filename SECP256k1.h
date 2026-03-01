@@ -19,6 +19,7 @@
 #define SECP256K1H
 
 #include "Point.h"
+#include <cstdint>
 #include <string>
 #include <vector>
 

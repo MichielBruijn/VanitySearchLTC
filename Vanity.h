@@ -19,6 +19,7 @@
 #define VANITYH
 
 #include <string>
+#include <cstdint>
 #include <vector>
 #include "SECP256k1.h"
 #include "GPU/GPUEngine.h"

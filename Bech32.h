@@ -23,6 +23,7 @@
 #define _SEGWIT_ADDR_H_ 1
 
 #include <stdint.h>
+#include <cstdint>
 
  /** Encode a SegWit address
   *
